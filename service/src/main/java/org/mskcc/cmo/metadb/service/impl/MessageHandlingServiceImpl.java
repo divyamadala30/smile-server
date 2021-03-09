@@ -17,7 +17,7 @@ import org.mskcc.cmo.messaging.Gateway;
 import org.mskcc.cmo.messaging.MessageConsumer;
 import org.mskcc.cmo.metadb.model.MetaDbRequest;
 import org.mskcc.cmo.metadb.model.MetaDbSample;
-import org.mskcc.cmo.metadb.model.SampleManifestEntity;
+import org.mskcc.cmo.metadb.model.SampleMetadata;
 import org.mskcc.cmo.metadb.service.MessageHandlingService;
 import org.mskcc.cmo.metadb.service.MetaDbRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,12 +152,12 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
             throws JsonProcessingException, IOException {
         Map<String, Object> map = mapper.readValue(message.toString(), Map.class);
         ObjectMapper mapper = new ObjectMapper();
-        SampleManifestEntity[] sampleList = mapper.convertValue(map.get("samples"),
-                SampleManifestEntity[].class);
+        SampleMetadata[] sampleList = mapper.convertValue(map.get("samples"),
+                SampleMetadata[].class);
         List<MetaDbSample> metaDbSampleList = new ArrayList<>();
-        for (SampleManifestEntity sample: sampleList) {
+        for (SampleMetadata sample: sampleList) {
             MetaDbSample metaDbSample = new MetaDbSample();
-            metaDbSample.addSampleManifest(sample);
+            metaDbSample.addSampleMetadata(sample);
             metaDbSampleList.add(metaDbSample);
         }
         return metaDbSampleList;

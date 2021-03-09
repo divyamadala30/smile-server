@@ -24,7 +24,7 @@ public class MetaDbSample implements Serializable {
     @Relationship(type = "HAS_SAMPLE", direction = Relationship.INCOMING)
     private MetaDbPatient patient;
     @Relationship(type = "HAS_METADATA", direction = Relationship.OUTGOING)
-    private List<SampleManifestEntity> sampleManifestList;
+    private List<SampleMetadata> sampleMetadataList;
     private String sampleClass;
 
     public MetaDbSample() {}
@@ -64,23 +64,23 @@ public class MetaDbSample implements Serializable {
         this.patient = patient;
     }
 
-    public void setSampleManifestList(List<SampleManifestEntity> sampleManifestList) {
-        this.sampleManifestList = sampleManifestList;
+    public void setSampleMetadataList(List<SampleMetadata> sampleMetadataList) {
+        this.sampleMetadataList = sampleMetadataList;
     }
 
-    public List<SampleManifestEntity> getSampleManifestList() {
-        return sampleManifestList;
+    public List<SampleMetadata> getSampleMetadataList() {
+        return sampleMetadataList;
     }
 
     /**
      *
-     * @param sampleManifestEntity
+     * @param sampleMetadata
      */
-    public void addSampleManifest(SampleManifestEntity sampleManifestEntity) {
-        if (sampleManifestList == null) {
-            sampleManifestList = new ArrayList<>();
+    public void addSampleMetadata(SampleMetadata sampleMetadata) {
+        if (sampleMetadataList == null) {
+            sampleMetadataList = new ArrayList<>();
         }
-        sampleManifestList.add(sampleManifestEntity);
+        sampleMetadataList.add(sampleMetadata);
     }
 
     public void setPatientUuid(UUID uuid) {
