@@ -30,6 +30,10 @@ public class MetaDbPatient implements Serializable {
 
     public MetaDbPatient() {}
 
+    public MetaDbPatient(String investigatorPatientId) {
+        this.investigatorPatientId = investigatorPatientId;
+    }
+
     public UUID getMetaDbPatientId() {
         return metaDbPatientId;
     }

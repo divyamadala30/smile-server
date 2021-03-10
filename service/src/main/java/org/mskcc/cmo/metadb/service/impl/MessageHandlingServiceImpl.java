@@ -3,6 +3,8 @@ package org.mskcc.cmo.metadb.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -156,6 +158,9 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                 SampleMetadata[].class);
         List<MetaDbSample> metaDbSampleList = new ArrayList<>();
         for (SampleMetadata sample: sampleList) {
+            // update import date here since we are parsing from json
+            sample.setImportDate(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+
             MetaDbSample metaDbSample = new MetaDbSample();
             metaDbSample.addSampleMetadata(sample);
             metaDbSampleList.add(metaDbSample);

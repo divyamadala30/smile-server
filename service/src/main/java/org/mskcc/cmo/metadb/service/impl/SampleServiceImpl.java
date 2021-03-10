@@ -1,7 +1,5 @@
 package org.mskcc.cmo.metadb.service.impl;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import org.mskcc.cmo.metadb.model.MetaDbPatient;
@@ -44,39 +42,12 @@ public class SampleServiceImpl implements SampleService {
     }
 
     @Override
-    public MetaDbSample setUpMetaDbSample(MetaDbSample
-            metaDbSample) throws Exception {
-        metaDbSample = setUpSampleMetadata(metaDbSample);
-        SampleMetadata sampleMetadata = metaDbSample.getSampleMetadataList().get(0);
+    public MetaDbSample setUpMetaDbSample(MetaDbSample metaDbSample) throws Exception {
+        SampleMetadata sampleMetadata = metaDbSample.getLatestSampleMetadata();
         metaDbSample.setSampleClass(sampleMetadata.getTumorOrNormal());
-
-        MetaDbPatient patient = new MetaDbPatient();
-        patient.setInvestigatorPatientId(sampleMetadata.getCmoPatientId());
-        metaDbSample.setPatient(patient);
-
-        SampleAlias igoId = new SampleAlias();
-        igoId.setNamespace("igoId");
-        igoId.setSampleId(sampleMetadata.getIgoId());
-        metaDbSample.addSample(igoId);
-
-        SampleAlias investigatorId = new SampleAlias();
-        investigatorId.setNamespace("investigatorId");
-        investigatorId.setSampleId(sampleMetadata.getInvestigatorSampleId());
-
-        metaDbSample.addSample(investigatorId);
-        return metaDbSample;
-    }
-
-    @Override
-    public MetaDbSample setUpSampleMetadata(MetaDbSample metaDbSample) throws Exception {
-        List<SampleMetadata> smList = metaDbSample.getSampleMetadataList();
-        // update latest sample metadata with current date
-        if (smList != null && !smList.isEmpty()) {
-            SampleMetadata latest = smList.remove(0);
-            latest.setImportDate(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-            smList.add(0, latest);
-            metaDbSample.setSampleMetadataList(smList);
-        }
+        metaDbSample.setPatient(new MetaDbPatient(sampleMetadata.getCmoPatientId()));
+        metaDbSample.addSample(new SampleAlias(sampleMetadata.getIgoId(), "igoId"));
+        metaDbSample.addSample(new SampleAlias(sampleMetadata.getInvestigatorSampleId(), "investigatorId"));
         return metaDbSample;
     }
 

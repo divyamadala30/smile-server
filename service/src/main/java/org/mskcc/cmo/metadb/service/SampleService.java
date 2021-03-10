@@ -10,8 +10,6 @@ public interface SampleService {
 
     MetaDbSample setUpMetaDbSample(MetaDbSample metaDbSample) throws Exception;
 
-    MetaDbSample setUpSampleMetadata(MetaDbSample metaDbSample) throws Exception;
-
     List<MetaDbSample> findMatchedNormalSample(MetaDbSample metaDbSample)
             throws Exception;
 

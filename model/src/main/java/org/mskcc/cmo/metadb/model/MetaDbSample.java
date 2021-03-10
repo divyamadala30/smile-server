@@ -2,9 +2,15 @@ package org.mskcc.cmo.metadb.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.neo4j.driver.internal.shaded.io.netty.util.internal.StringUtil;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -109,6 +115,39 @@ public class MetaDbSample implements Serializable {
 
     public void setSampleClass(String sampleClass) {
         this.sampleClass = sampleClass;
+    }
+
+    /**
+     * Returns the latest SampleMetadata based on the import date.
+     * @return SampleMetadata
+     * @throws ParseException
+     */
+    public SampleMetadata getLatestSampleMetadata() throws ParseException {
+        if (sampleMetadataList != null && !sampleMetadataList.isEmpty()) {
+            Date latest = null;
+            SampleMetadata smLatest = null;
+            for (SampleMetadata sm : sampleMetadataList) {
+                // if null or empty import date then set it to current date
+                if (StringUtil.isNullOrEmpty(sm.getImportDate())) {
+                    sm.setImportDate(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+                }
+                // compare current date with 'latest' date encountered
+                // let's not assume that the most recent sample metadata will
+                // always be the first element in the sampleMetadataList
+                Date current = new SimpleDateFormat(
+                        DateTimeFormatter.ISO_LOCAL_DATE.toString()).parse(sm.getImportDate());
+                if (latest == null) {
+                    latest = current;
+                    smLatest = sm;
+                } else if (current.after(latest)) {
+                    // if current is later than the 'latest' then update 'latest' date and sample metadata
+                    latest = current;
+                    smLatest = sm;
+                }
+            }
+            return smLatest;
+        }
+        return null;
     }
 
 }
