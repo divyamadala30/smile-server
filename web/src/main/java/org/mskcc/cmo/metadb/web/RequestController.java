@@ -64,4 +64,21 @@ public class RequestController {
         }
         return requestList;
     }
+    
+    /**
+     * fetchMetaDbRequestJson
+     * @param requestId
+     */
+    @ApiOperation(value = "Retrieve MetaDbRequestJson",
+        nickname = "fetchMetaDbRequestJsonGET")
+    @RequestMapping(value = "/request/json/{requestId}",
+        method = RequestMethod.GET,
+        produces = "application/json")
+    public String fetchMetaDbRequestJsonGET(@ApiParam(value =
+        "Retrieves MetaDbRequestJson from a RequestId.",
+        required = true)
+        @PathVariable String requestId) throws Exception {
+        return metaDbRequestService.getMetaDbRequest(requestId).getRequestJson();
+    }
+    
 }
