@@ -3,7 +3,7 @@ RUN mkdir /cmo-metadb
 
 ADD . /cmo-metadb
 WORKDIR /cmo-metadb
-RUN mvn clean install
+RUN mvn -Dspring.config.location=/conf/cmo-metadb/application.properties clean install
 
 FROM openjdk:8-slim
 COPY --from=0 /server/target/cmo-metadb.jar /cmo-metadb.jar
