@@ -7,8 +7,6 @@ RUN mvn clean install
 
 FROM openjdk:8-slim
 WORKDIR /cmo-metadb
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} cmo_metadb_server.jar
-#COPY --from=0 /server/terget/cmo_metadb_server.jar /cmo-metadb
-CMD ["java -jar /cmo_metadb_server.jar"]
-ENTRYPOINT ["java","-jar","/cmo_metadb_server.jar"]
+COPY server/target/cmo_metadb_server.jar cmo_metadb_server.jar
+CMD ["java -jar cmo_metadb_server.jar"]
+ENTRYPOINT ["java","-jar","cmo_metadb_server.jar"]
