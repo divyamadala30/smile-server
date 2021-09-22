@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 
 import java.util.List;
 import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.mskcc.cmo.metadb.model.MetaDbPatient;
 import org.mskcc.cmo.metadb.model.MetaDbRequest;
@@ -227,6 +228,27 @@ public class MetadbServiceTest {
         String igoId = "MOCKREQUEST1_B_4";
         List<SampleMetadata> sampleMetadataHistory = sampleService.getSampleMetadataHistoryByIgoId(igoId);
         Assertions.assertThat(sampleMetadataHistory).isSorted();
+    }
+    
+    @Test
+    public void testFindPatientByPatientAlias() {
+        Assertions.assertThat(patientRepository.findPatientByPatientAlias("C-MP789JR")).isNotNull();
+    }
+    
+    @Test
+    public void testFindPatientByPatientAliasWithExpectedFailure() {
+        MetaDbPatient patient = new MetaDbPatient();
+        PatientAlias patientAlias = new PatientAlias();
+        patientAlias.setPatientId("C-MP789JR");
+        patient.addPatientAlias(patientAlias);
+        patientRepository.save(patient);
+        
+        try {
+            MetaDbPatient retrievedPatient = patientRepository.findPatientByPatientAlias("C-MP789JR");
+            Assert.fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
