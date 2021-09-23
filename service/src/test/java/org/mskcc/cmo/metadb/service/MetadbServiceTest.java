@@ -1,11 +1,7 @@
 package org.mskcc.cmo.metadb.service;
 
-
-import static org.junit.Assert.assertThrows;
-
 import java.util.List;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.mskcc.cmo.metadb.model.MetaDbPatient;
 import org.mskcc.cmo.metadb.model.MetaDbRequest;
@@ -243,12 +239,10 @@ public class MetadbServiceTest {
         patient.addPatientAlias(patientAlias);
         patientRepository.save(patient);
         
-        try {
-            MetaDbPatient retrievedPatient = patientRepository.findPatientByPatientAlias("C-MP789JR");
-            Assert.fail();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Assertions.assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+        .isThrownBy( () -> {
+            patientRepository.findPatientByPatientAlias("C-MP789JR");
+        });
     }
 
     @Test
