@@ -5,19 +5,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.mskcc.cmo.metadb.model.converter.LibrariesStringConverter;
 import org.mskcc.cmo.metadb.model.converter.MapStringConverter;
 import org.mskcc.cmo.metadb.model.converter.QcReportsStringConverter;
+import org.mskcc.cmo.metadb.model.dmp.DmpSampleMetadata;
 import org.mskcc.cmo.metadb.model.igo.IgoSampleManifest;
 import org.mskcc.cmo.metadb.model.igo.Library;
 import org.mskcc.cmo.metadb.model.igo.QcReport;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
+@NodeEntity
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SampleMetadata implements Serializable, Comparable<SampleMetadata> {
     @Id @GeneratedValue
@@ -51,6 +55,8 @@ public class SampleMetadata implements Serializable, Comparable<SampleMetadata> 
     private List<Library> libraries;
     @Convert(MapStringConverter.class)
     private Map<String, String> cmoSampleIdFields;
+    @Convert(MapStringConverter.class)
+    private Map<String, String> additionalProperties = new HashMap<>();
 
     public SampleMetadata() {}
 
@@ -83,6 +89,30 @@ public class SampleMetadata implements Serializable, Comparable<SampleMetadata> 
         this.qcReports =  igoSampleManifest.getQcReports();
         this.libraries = igoSampleManifest.getLibraries();
         this.cmoSampleIdFields = igoSampleManifest.getCmoSampleIdFields();
+    }
+
+    /**
+     * SampleMetadata constructor from dmpSampleMetadata.
+     * @param dmpSampleMetadata
+     */
+    public SampleMetadata(DmpSampleMetadata dmpSampleMetadata) {
+        // other values are resolved in SampleDataFactory
+        this.primaryId = dmpSampleMetadata.getDmpSampleId();
+        this.oncotreeCode = dmpSampleMetadata.getTumorTypeCode();
+        this.tissueLocation = dmpSampleMetadata.getPrimarySite();
+        this.genePanel = dmpSampleMetadata.getGenePanel();
+        this.baitSet = dmpSampleMetadata.getGenePanel();
+        this.species = "Human";
+        this.tissueLocation = dmpSampleMetadata.getBiopsySite();
+    }
+
+    Map<String, String> setUpMetastasisValueMapping() {
+        Map<String, String> metastasisValueMapping = new HashMap<>();
+        metastasisValueMapping.put("0", "Primary");
+        metastasisValueMapping.put("1", "Metastasis");
+        metastasisValueMapping.put("2", "Local Recurrence");
+        metastasisValueMapping.put("127", "Unknown");
+        return metastasisValueMapping;
     }
 
     public Long getId() {
@@ -327,6 +357,18 @@ public class SampleMetadata implements Serializable, Comparable<SampleMetadata> 
 
     public void setCmoSampleIdFields(Map<String, String> cmoSampleIdFields) {
         this.cmoSampleIdFields = cmoSampleIdFields;
+    }
+
+    public Map<String, String> getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
+
+    public void addAdditionalProperty(String property, String value) {
+        this.additionalProperties.put(property, value);
     }
 
     @Override
