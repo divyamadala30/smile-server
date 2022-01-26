@@ -24,6 +24,17 @@ public class PatientServiceImpl implements MetadbPatientService {
     }
 
     @Override
+    public MetadbPatient updatePatientMetadata(MetadbPatient patient, MetadbPatient existingPatient) {
+        for (PatientAlias alias : patient.getPatientAliases()) {
+            if (!existingPatient.hasPatientAlias(alias)) {
+                existingPatient.addPatientAlias(alias);
+            }
+        }
+        patientRepository.save(existingPatient);
+        return existingPatient;
+    }
+
+    @Override
     public MetadbPatient getPatientByCmoPatientId(String cmoPatientId) {
         MetadbPatient patient = patientRepository.findPatientByCmoPatientId(cmoPatientId);
         if (patient != null) {
