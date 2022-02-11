@@ -61,6 +61,9 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
     @Value("${metadb.correct_cmoptid_topic}")
     private String CORRECT_CMOPTID_TOPIC;
 
+    @Value("${request_reply.generate_cmo_label_topic}")
+    private String GENERATE_LABEL_REQUEST_TOPIC;
+
     @Value("${num.new_request_handler_threads}")
     private int NUM_NEW_REQUEST_HANDLERS;
 
@@ -120,27 +123,52 @@ public class MessageHandlingServiceImpl implements MessageHandlingService {
                         String oldCmoPatientId = idCorrectionMap.get("oldId");
                         String newCmoPatientId = idCorrectionMap.get("newId");
 
-                        // get samples by old cmo patient id before updating the
-                        // cmo patient id for the given patient alias/patient node
-                        List<MetadbSample> samples =
+                        List<MetadbSample> samplesByOldCmoPatient =
                                 sampleService.getSamplesByCmoPatientId(oldCmoPatientId);
-                        MetadbPatient updatedPatient = patientService.updateCmoPatientId(
-                                oldCmoPatientId, newCmoPatientId);
 
-                        for (MetadbSample sample: samples) {
-                            SampleMetadata latestMetadata = sample.getLatestSampleMetadata();
-                            latestMetadata.setCmoPatientId(newCmoPatientId);
-                            if (sample.getSampleCategory().equals("research")) {
-                                LOG.info("Updating patient ID prefix embedded in CMO sample label "
-                                        + "for research sample: " + latestMetadata.getPrimaryId());
-                                String newCmoSampleLabel = latestMetadata.getCmoSampleName()
-                                        .replaceAll(oldCmoPatientId, newCmoPatientId);
-                                latestMetadata.setCmoSampleName(newCmoSampleLabel);
+                        // does a patient exist already by the new cmo patient id?
+                        MetadbPatient newPatient = patientService.getPatientByCmoPatientId(newCmoPatientId);
+                        if (newPatient == null) {
+                            // patient does not already exist so continue with
+                            // updating the cmo patient id and prefix of cmo sample labels
+                            MetadbPatient updatedPatient = patientService.updateCmoPatientId(
+                                    oldCmoPatientId, newCmoPatientId);
+
+                            for (MetadbSample sample: samplesByOldCmoPatient) {
+                                SampleMetadata latestMetadata = sample.getLatestSampleMetadata();
+                                latestMetadata.setCmoPatientId(newCmoPatientId);
+                                if (sample.getSampleCategory().equals("research")) {
+                                    LOG.info("Updating patient ID prefix embedded in CMO sample label "
+                                            + "for research sample: " + latestMetadata.getPrimaryId());
+                                    String newCmoSampleLabel = latestMetadata.getCmoSampleName()
+                                            .replaceAll(oldCmoPatientId, newCmoPatientId);
+                                    latestMetadata.setCmoSampleName(newCmoSampleLabel);
+                                }
+                                sample.setPatient(updatedPatient);
+                                sample.updateSampleMetadata(latestMetadata);
+                                LOG.info("Persisting update for sample to database");
+                                sampleService.saveMetadbSample(sample);
                             }
-                            sample.setPatient(updatedPatient);
-                            sample.updateSampleMetadata(latestMetadata);
-                            LOG.info("Persisting update for sample to database");
-                            sampleService.saveMetadbSample(sample);
+                        } else {
+                            LOG.info("Patient already exists in db by new CMO patient ID: " + newCmoPatientId
+                                    + " - generating new label for samples linked to former CMO patient ID: "
+                                    + oldCmoPatientId);
+                            for (MetadbSample sample : samplesByOldCmoPatient) {
+                                SampleMetadata latestMetadata = sample.getLatestSampleMetadata();
+                                latestMetadata.setCmoPatientId(newCmoPatientId);
+                                if (sample.getSampleCategory().equals("research")) {
+                                    LOG.info("Request new CMO sample label for sample: "
+                                            + latestMetadata.getPrimaryId());
+                                    Message reply = messagingGateway.request(GENERATE_LABEL_REQUEST_TOPIC,
+                                            mapper.writeValueAsString(latestMetadata));
+                                    String newCmoSampleLabel = new String(reply.getData(), StandardCharsets.UTF_8);
+                                    latestMetadata.setCmoSampleName(newCmoSampleLabel);
+                                    sample.setPatient(newPatient);
+                                    sample.updateSampleMetadata(latestMetadata);
+                                    LOG.info("Persisting update for sample to database");
+                                    sampleService.saveMetadbSample(sample);
+                                }
+                            }
                         }
                     }
                     if (interrupted && correctCmoPatientIdQueue.isEmpty()) {
