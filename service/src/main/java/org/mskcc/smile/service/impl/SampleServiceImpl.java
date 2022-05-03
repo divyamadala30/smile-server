@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mskcc.smile.commons.JsonComparator;
 import org.mskcc.smile.model.PatientAlias;
 import org.mskcc.smile.model.SampleMetadata;
@@ -43,6 +45,7 @@ public class SampleServiceImpl implements SmileSampleService {
     private SmilePatientService patientService;
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private static final Log LOG = LogFactory.getLog(SampleServiceImpl.class);
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -56,9 +59,12 @@ public class SampleServiceImpl implements SmileSampleService {
             sample.setSmileSampleId(newSampleId);
             return sample;
         } else {
-            fetchAndLoadSampleDetails(existingSample);
-            existingSample.updateSampleMetadata(sample.getLatestSampleMetadata());
-            sampleRepository.save(existingSample);
+            getDetailedSmileSample(existingSample);
+            if (sampleHasMetadataUpdates(existingSample.getLatestSampleMetadata(),
+                    sample.getLatestSampleMetadata())) {
+                existingSample.updateSampleMetadata(sample.getLatestSampleMetadata());
+                sampleRepository.save(existingSample);
+            }
             return existingSample;
         }
     }
@@ -145,6 +151,12 @@ public class SampleServiceImpl implements SmileSampleService {
         try {
             jsonComparator.isConsistent(currentMetadata, existingMetadata);
         } catch (AssertionError e) {
+            return Boolean.TRUE;
+        }
+        // check if research sample and if cmo sample name is different
+        if ((existingSampleMetadata.getCmoSampleName() != null && sampleMetadata.getCmoSampleName() != null)
+                && (!existingSampleMetadata.getCmoSampleName()
+                        .equals(sampleMetadata.getCmoSampleName()))) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;

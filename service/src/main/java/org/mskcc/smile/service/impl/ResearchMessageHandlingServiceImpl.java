@@ -253,11 +253,7 @@ public class ResearchMessageHandlingServiceImpl implements ResearchMessageHandli
                             messagingGateway.publish(CMO_SAMPLE_UPDATE_TOPIC,
                                     mapper.writeValueAsString(sample.getSampleMetadataList()));
                         } else if (sampleService.sampleHasMetadataUpdates(
-                                existingSample.getLatestSampleMetadata(), sampleMetadata)
-                                || (!sampleService.sampleHasMetadataUpdates(
-                                        existingSample.getLatestSampleMetadata(), sampleMetadata))
-                                && !existingSample.getLatestSampleMetadata().getCmoSampleName()
-                                        .equals(sampleMetadata.getCmoSampleName())) {
+                                existingSample.getLatestSampleMetadata(), sampleMetadata)) {
                             // logic checks if 1. comparator detects changes or 2. comparator does not
                             // detect changes because 'cmoSampleName' is ignored but the 'cmoSampleName'
                             // for existing and current sample metadata clearly differ then proceed with

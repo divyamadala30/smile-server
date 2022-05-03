@@ -307,12 +307,12 @@ public class SampleServiceTest {
         updatedMetadata.setPrimaryId(igoId);
         updatedMetadata.setCmoSampleName("C-OLDSAMPLELABEL-T11");
         sample.updateSampleMetadata(updatedMetadata);
-        sampleService.saveSmileSample(sample);
+        sampleRepository.save(sample);
 
         // confirm that new sample metadata was persisted
         List<SampleMetadata> sampleMetadataHistory = sampleService
                 .getResearchSampleMetadataHistoryByIgoId(igoId);
-        Assertions.assertThat(sampleMetadataHistory.size()).isEqualTo(3);
+        Assertions.assertThat(sampleMetadataHistory.size()).isEqualTo(2);
 
         // confirms that both methods return the same latest metadata and
         // same cmo sample label corresponding to it
